@@ -47,6 +47,21 @@ describe('Plugin', function () {
     });
   });
 
+  it('should support webpack config with interpolation in `output.path`', async function () {
+    const config = makeWebpackConfig();
+    config.output.path += '/[hash]';
+
+    await webpackCompile(config);
+
+    const chartData = await getChartDataFromReport('7e56a1f8a54acedcc9ce/report.html');
+    expect(chartData[0]).to.containSubset({
+      label: 'bundle.js',
+      statSize: 141,
+      parsedSize: 1311,
+      gzipSize: 342
+    });
+  });
+
   it('should support webpack config with `multi` module', async function () {
     const config = makeWebpackConfig();
 

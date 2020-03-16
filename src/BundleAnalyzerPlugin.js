@@ -35,6 +35,7 @@ class BundleAnalyzerPlugin {
 
     const done = (stats, callback) => {
       callback = callback || (() => {});
+      const bundleDir = stats.compilation.getPath(stats.compilation.outputOptions.path);
 
       const actions = [];
 
@@ -48,9 +49,9 @@ class BundleAnalyzerPlugin {
       }
 
       if (this.opts.analyzerMode === 'server') {
-        actions.push(() => this.startAnalyzerServer(stats.toJson()));
+        actions.push(() => this.startAnalyzerServer(stats.toJson(), bundleDir));
       } else if (this.opts.analyzerMode === 'static') {
-        actions.push(() => this.generateStaticReport(stats.toJson()));
+        actions.push(() => this.generateStaticReport(stats.toJson(), bundleDir));
       }
 
       if (actions.length) {
@@ -99,7 +100,7 @@ class BundleAnalyzerPlugin {
     }
   }
 
-  async startAnalyzerServer(stats) {
+  async startAnalyzerServer(stats, bundleDir) {
     if (this.server) {
       (await this.server).updateChartData(stats);
     } else {
@@ -107,7 +108,7 @@ class BundleAnalyzerPlugin {
         openBrowser: this.opts.openAnalyzer,
         host: this.opts.analyzerHost,
         port: this.opts.analyzerPort,
-        bundleDir: this.getBundleDirFromCompiler(),
+        bundleDir: bundleDir || this.getBundleDirFromCompiler(),
         logger: this.logger,
         defaultSizes: this.opts.defaultSizes,
         excludeAssets: this.opts.excludeAssets
@@ -115,11 +116,11 @@ class BundleAnalyzerPlugin {
     }
   }
 
-  async generateStaticReport(stats) {
+  async generateStaticReport(stats, bundleDir) {
     await viewer.generateReport(stats, {
       openBrowser: this.opts.openAnalyzer,
-      reportFilename: path.resolve(this.compiler.outputPath, this.opts.reportFilename),
-      bundleDir: this.getBundleDirFromCompiler(),
+      reportFilename: path.resolve(bundleDir || this.compiler.outputPath, this.opts.reportFilename),
+      bundleDir: bundleDir || this.getBundleDirFromCompiler(),
       logger: this.logger,
       defaultSizes: this.opts.defaultSizes,
       excludeAssets: this.opts.excludeAssets
