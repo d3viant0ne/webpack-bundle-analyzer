@@ -3,9 +3,9 @@ const fs = require('fs');
 const http = require('http');
 
 const WebSocket = require('ws');
-const _ = require('lodash');
 const express = require('express');
 const {bold} = require('chalk');
+const {isPlainObject} = require('is-plain-object');
 
 const Logger = require('./Logger');
 const analyzer = require('./analyzer');
@@ -176,7 +176,7 @@ function getChartData(analyzerOpts, ...args) {
     chartData = null;
   }
 
-  if (_.isPlainObject(chartData) && _.isEmpty(chartData)) {
+  if (isPlainObject(chartData) && Object.keys(chartData).length === 0) {
     logger.error("Could't find any javascript bundles in provided stats file");
     chartData = null;
   }

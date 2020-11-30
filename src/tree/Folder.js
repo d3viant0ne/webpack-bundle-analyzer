@@ -1,4 +1,3 @@
-import _ from 'lodash';
 import gzipSize from 'gzip-size';
 
 import Module from './Module';
@@ -13,7 +12,7 @@ export default class Folder extends BaseFolder {
   }
 
   get gzipSize() {
-    if (!_.has(this, '_gzipSize')) {
+    if (!('_gzipSize' in this)) {
       this._gzipSize = this.src ? gzipSize.sync(this.src) : 0;
     }
 
@@ -27,7 +26,7 @@ export default class Folder extends BaseFolder {
       return;
     }
 
-    const [folders, fileName] = [pathParts.slice(0, -1), _.last(pathParts)];
+    const [folders, fileName] = [pathParts.slice(0, -1), pathParts[pathParts.length - 1]];
     let currentFolder = this;
 
     folders.forEach(folderName => {

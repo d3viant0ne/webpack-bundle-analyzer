@@ -1,5 +1,3 @@
-import _ from 'lodash';
-
 import Node from './Node';
 
 export default class BaseFolder extends Node {
@@ -10,7 +8,7 @@ export default class BaseFolder extends Node {
   }
 
   get src() {
-    if (!_.has(this, '_src')) {
+    if (!('_src' in this)) {
       this._src = this.walk((node, src) => (src += node.src || ''), '', false);
     }
 
@@ -18,7 +16,7 @@ export default class BaseFolder extends Node {
   }
 
   get size() {
-    if (!_.has(this, '_size')) {
+    if (!('_size' in this)) {
       this._size = this.walk((node, size) => (size + node.size), 0, false);
     }
 
@@ -111,7 +109,7 @@ export default class BaseFolder extends Node {
       label: this.name,
       path: this.path,
       statSize: this.size,
-      groups: _.invokeMap(this.children, 'toChartData')
+      groups: Object.values(this.children).map(item => item.toChartData())
     };
   }
 

@@ -1,5 +1,4 @@
 const {inspect, types} = require('util');
-const _ = require('lodash');
 const opener = require('opener');
 
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
@@ -7,9 +6,8 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 exports.createAssetsFilter = createAssetsFilter;
 
 function createAssetsFilter(excludePatterns) {
-  const excludeFunctions = _(excludePatterns)
-    .castArray()
-    .compact()
+  const excludeFunctions = (Array.isArray(excludePatterns) ? excludePatterns : [excludePatterns])
+    .filter(pattern => pattern != null)
     .map(pattern => {
       if (typeof pattern === 'string') {
         pattern = new RegExp(pattern, 'u');
@@ -26,8 +24,7 @@ function createAssetsFilter(excludePatterns) {
       }
 
       return pattern;
-    })
-    .value();
+    });
 
   if (excludeFunctions.length) {
     return (asset) => excludeFunctions.every(fn => fn(asset) !== true);
