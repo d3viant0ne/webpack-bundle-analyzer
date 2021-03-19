@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const {parseChunked} = require('@discoveryjs/json-ext');
 
 const _ = require('lodash');
 const gzipSize = require('gzip-size');
@@ -162,9 +163,7 @@ function getViewerData(bundleStats, bundleDir, opts) {
 }
 
 function readStatsFromFile(filename) {
-  return JSON.parse(
-    fs.readFileSync(filename, 'utf8')
-  );
+  return parseChunked(fs.createReadStream(filename, {encoding: 'utf8'}));
 }
 
 function getChildAssetBundles(bundleStats, assetName) {

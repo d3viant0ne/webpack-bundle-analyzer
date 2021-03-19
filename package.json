@@ -33,6 +33,7 @@
     "src"
   ],
   "dependencies": {
+    "@discoveryjs/json-ext": "^0.5.2",
     "acorn": "^8.0.4",
     "acorn-walk": "^8.0.0",
     "chalk": "^4.1.0",
