@@ -17,7 +17,7 @@ describe('Webpack Dev Server', function () {
 
     this.timeout(timeout);
 
-    const devServer = exec(`${__dirname}/../node_modules/.bin/webpack-dev-server --config ${WEBPACK_CONFIG_PATH}`, {
+    const devServer = exec(`${__dirname}/../node_modules/.bin/webpack serve --config ${WEBPACK_CONFIG_PATH}`, {
       cwd: ROOT
     });
 
