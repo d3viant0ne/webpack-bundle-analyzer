@@ -1,13 +1,14 @@
 import _ from 'lodash';
-import gzipSize from 'gzip-size';
+import {getCompressedSize} from '../sizeUtils';
 
 import Node from './Node';
 
 export default class Module extends Node {
 
-  constructor(name, data, parent) {
+  constructor(name, data, parent, opts) {
     super(name, parent);
     this.data = data;
+    this.opts = opts;
   }
 
   get src() {
@@ -17,6 +18,7 @@ export default class Module extends Node {
   set src(value) {
     this.data.parsedSrc = value;
     delete this._gzipSize;
+    delete this._brotliSize;
   }
 
   get size() {
@@ -32,11 +34,20 @@ export default class Module extends Node {
   }
 
   get gzipSize() {
-    if (!_.has(this, '_gzipSize')) {
-      this._gzipSize = this.src ? gzipSize.sync(this.src) : undefined;
+    return this.opts.compressionAlgorithm === 'gzip' ? this.getCompressedSize('gzip') : undefined;
+  }
+
+  get brotliSize() {
+    return this.opts.compressionAlgorithm === 'brotli' ? this.getCompressedSize('brotli') : undefined;
+  }
+
+  getCompressedSize(compressionAlgorithm) {
+    const key = `_${compressionAlgorithm}Size`;
+    if (!_.has(this, key)) {
+      this[key] = this.src ? getCompressedSize(compressionAlgorithm, this.src) : undefined;
     }
 
-    return this._gzipSize;
+    return this[key];
   }
 
   mergeData(data) {
@@ -56,7 +67,8 @@ export default class Module extends Node {
       path: this.path,
       statSize: this.size,
       parsedSize: this.parsedSize,
-      gzipSize: this.gzipSize
+      gzipSize: this.gzipSize,
+      brotliSize: this.brotliSize
     };
   }
 

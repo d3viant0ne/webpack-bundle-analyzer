@@ -18,11 +18,17 @@ import Search from './Search';
 import {store} from '../store';
 import ModulesList from './ModulesList';
 
-const SIZE_SWITCH_ITEMS = [
-  {label: 'Stat', prop: 'statSize'},
-  {label: 'Parsed', prop: 'parsedSize'},
-  {label: 'Gzipped', prop: 'gzipSize'}
-];
+function allSizeSwitchItems() {
+  const items = [
+    {label: 'Stat', prop: 'statSize'},
+    {label: 'Parsed', prop: 'parsedSize'}
+  ];
+
+  if (window.compressionAlgorithm === 'gzip') items.push({label: 'Gzipped', prop: 'gzipSize'});
+  if (window.compressionAlgorithm === 'brotli') items.push({label: 'Brotli', prop: 'brotliSize'});
+
+  return items;
+}
 
 @observer
 export default class ModulesTreemap extends Component {
@@ -138,7 +144,7 @@ export default class ModulesTreemap extends Component {
   renderModuleSize(module, sizeType) {
     const sizeProp = `${sizeType}Size`;
     const size = module[sizeProp];
-    const sizeLabel = SIZE_SWITCH_ITEMS.find(item => item.prop === sizeProp).label;
+    const sizeLabel = allSizeSwitchItems().find(item => item.prop === sizeProp).label;
     const isActive = (store.activeSize === sizeProp);
 
     return (typeof size === 'number') ?
@@ -162,7 +168,8 @@ export default class ModulesTreemap extends Component {
   };
 
   @computed get sizeSwitchItems() {
-    return store.hasParsedSizes ? SIZE_SWITCH_ITEMS : SIZE_SWITCH_ITEMS.slice(0, 1);
+    const items = allSizeSwitchItems();
+    return store.hasParsedSizes ? items : items.slice(0, 1);
   }
 
   @computed get activeSizeItem() {
@@ -316,7 +323,7 @@ export default class ModulesTreemap extends Component {
         <br/>
         {this.renderModuleSize(module, 'stat')}
         {!module.inaccurateSizes && this.renderModuleSize(module, 'parsed')}
-        {!module.inaccurateSizes && this.renderModuleSize(module, 'gzip')}
+        {!module.inaccurateSizes && this.renderModuleSize(module, window.compressionAlgorithm)}
         {module.path &&
           <div>Path: <strong>{module.path}</strong></div>
         }

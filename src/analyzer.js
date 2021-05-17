@@ -2,12 +2,12 @@ const fs = require('fs');
 const path = require('path');
 
 const _ = require('lodash');
-const gzipSize = require('gzip-size');
 
 const Logger = require('./Logger');
 const Folder = require('./tree/Folder').default;
 const {parseBundle} = require('./parseUtils');
 const {createAssetsFilter} = require('./utils');
+const {getCompressedSize} = require('./sizeUtils');
 
 const FILENAME_QUERY_REGEXP = /\?.*$/u;
 const FILENAME_EXTENSIONS = /\.(js|mjs)$/iu;
@@ -20,7 +20,8 @@ module.exports = {
 function getViewerData(bundleStats, bundleDir, opts) {
   const {
     logger = new Logger(),
-    excludeAssets = null
+    excludeAssets = null,
+    compressionAlgorithm
   } = opts || {};
 
   const isAssetIncluded = createAssetsFilter(excludeAssets);
@@ -102,7 +103,7 @@ function getViewerData(bundleStats, bundleDir, opts) {
 
     if (assetSources) {
       asset.parsedSize = Buffer.byteLength(assetSources.src);
-      asset.gzipSize = gzipSize.sync(assetSources.src);
+      asset[`${compressionAlgorithm}Size`] = getCompressedSize(compressionAlgorithm, assetSources.src);
     }
 
     // Picking modules from current bundle script
@@ -143,7 +144,7 @@ function getViewerData(bundleStats, bundleDir, opts) {
     }
 
     asset.modules = assetModules;
-    asset.tree = createModulesTree(asset.modules);
+    asset.tree = createModulesTree(asset.modules, {compressionAlgorithm});
     return result;
   }, {});
 
@@ -157,6 +158,7 @@ function getViewerData(bundleStats, bundleDir, opts) {
     statSize: asset.tree.size || asset.size,
     parsedSize: asset.parsedSize,
     gzipSize: asset.gzipSize,
+    brotliSize: asset.brotliSize,
     groups: _.invokeMap(asset.tree.children, 'toChartData')
   }));
 }
@@ -203,8 +205,8 @@ function isRuntimeModule(statModule) {
   return statModule.moduleType === 'runtime';
 }
 
-function createModulesTree(modules) {
-  const root = new Folder('.');
+function createModulesTree(modules, opts) {
+  const root = new Folder('.', opts);
 
   modules.forEach(module => root.addModule(module));
   root.mergeNestedFolders();

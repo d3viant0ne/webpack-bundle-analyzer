@@ -12,6 +12,7 @@ class BundleAnalyzerPlugin {
     this.opts = {
       analyzerMode: 'server',
       analyzerHost: '127.0.0.1',
+      compressionAlgorithm: 'gzip',
       reportFilename: null,
       reportTitle: utils.defaultTitle,
       defaultSizes: 'parsed',
@@ -104,6 +105,7 @@ class BundleAnalyzerPlugin {
         host: this.opts.analyzerHost,
         port: this.opts.analyzerPort,
         reportTitle: this.opts.reportTitle,
+        compressionAlgorithm: this.opts.compressionAlgorithm,
         bundleDir: this.getBundleDirFromCompiler(),
         logger: this.logger,
         defaultSizes: this.opts.defaultSizes,
@@ -115,6 +117,7 @@ class BundleAnalyzerPlugin {
   async generateJSONReport(stats) {
     await viewer.generateJSONReport(stats, {
       reportFilename: path.resolve(this.compiler.outputPath, this.opts.reportFilename || 'report.json'),
+      compressionAlgorithm: this.opts.compressionAlgorithm,
       bundleDir: this.getBundleDirFromCompiler(),
       logger: this.logger,
       excludeAssets: this.opts.excludeAssets
@@ -126,6 +129,7 @@ class BundleAnalyzerPlugin {
       openBrowser: this.opts.openAnalyzer,
       reportFilename: path.resolve(this.compiler.outputPath, this.opts.reportFilename || 'report.html'),
       reportTitle: this.opts.reportTitle,
+      compressionAlgorithm: this.opts.compressionAlgorithm,
       bundleDir: this.getBundleDirFromCompiler(),
       logger: this.logger,
       defaultSizes: this.opts.defaultSizes,

@@ -46,7 +46,7 @@ This module will help you:
 4. Optimize it!
 
 And the best thing is it supports minified bundles! It parses them to get real size of bundled modules.
-And it also shows their gzipped sizes!
+And it also shows their gzipped or Brotli sizes!
 
 <h2 align="center">Options (for plugin)</h2>
 
@@ -61,7 +61,8 @@ new BundleAnalyzerPlugin(options?: object)
 |**`analyzerPort`**|`{Number}` or `auto`|Default: `8888`. Port that will be used in `server` mode to start HTTP server.|
 |**`reportFilename`**|`{String}`|Default: `report.html`. Path to bundle report file that will be generated in `static` mode. It can be either an absolute path or a path relative to a bundle output directory (which is output.path in webpack config).|
 |**`reportTitle`**|`{String\|function}`|Default: function that returns pretty printed current date and time. Content of the HTML `title` element; or a function of the form `() => string` that provides the content.|
-|**`defaultSizes`**|One of: `stat`, `parsed`, `gzip`|Default: `parsed`. Module sizes to show in report by default. [Size definitions](#size-definitions) section describes what these values mean.|
+|**`defaultSizes`**|One of: `stat`, `parsed`, `gzip`, `brotli`|Default: `parsed`. Module sizes to show in report by default. [Size definitions](#size-definitions) section describes what these values mean.|
+|**`compressionAlgorithm`**|One of: `gzip`, `brotli`|Default: `gzip`. Compression type used to calculate the compressed module sizes.|
 |**`openAnalyzer`**|`{Boolean}`|Default: `true`. Automatically open report in default browser.|
 |**`generateStatsFile`**|`{Boolean}`|Default: `false`. If `true`, webpack stats JSON file will be generated in bundle output directory|
 |**`statsFilename`**|`{String}`|Default: `stats.json`. Name of webpack stats JSON file that will be generated if `generateStatsFile` is `true`. It can be either an absolute path or a path relative to a bundle output directory (which is output.path in webpack config).|
@@ -111,23 +112,25 @@ Directory containing all generated bundles.
 ### `options`
 
 ```
-  -V, --version               output the version number
-  -m, --mode <mode>           Analyzer mode. Should be `server`, `static` or `json`.
-                              In `server` mode analyzer will start HTTP server to show bundle report.
-                              In `static` mode single HTML file with bundle report will be generated.
-                              In `json` mode single JSON file with bundle report will be generated. (default: server)
-  -h, --host <host>           Host that will be used in `server` mode to start HTTP server. (default: 127.0.0.1)
-  -p, --port <n>              Port that will be used in `server` mode to start HTTP server. Should be a number or `auto` (default: 8888)
-  -r, --report <file>         Path to bundle report file that will be generated in `static` mode. (default: report.html)
-  -t, --title <title>         String to use in title element of html report. (default: pretty printed current date)
-  -s, --default-sizes <type>  Module sizes to show in treemap by default.
-                              Possible values: stat, parsed, gzip (default: parsed)
-  -O, --no-open               Don't open report in default browser automatically.
-  -e, --exclude <regexp>      Assets that should be excluded from the report.
-                              Can be specified multiple times.
-  -l, --log-level <level>     Log level.
-                              Possible values: debug, info, warn, error, silent (default: info)
-  -h, --help                  output usage information
+  -V, --version                   output the version number
+  -m, --mode <mode>               Analyzer mode. Should be `server`, `static` or `json`.
+                                  In `server` mode analyzer will start HTTP server to show bundle report.
+                                  In `static` mode single HTML file with bundle report will be generated.
+                                  In `json` mode single JSON file with bundle report will be generated. (default: server)
+  -h, --host <host>               Host that will be used in `server` mode to start HTTP server. (default: 127.0.0.1)
+  -p, --port <n>                  Port that will be used in `server` mode to start HTTP server. Should be a number or `auto` (default: 8888)
+  -r, --report <file>             Path to bundle report file that will be generated in `static` mode. (default: report.html)
+  -t, --title <title>             String to use in title element of html report. (default: pretty printed current date)
+  -s, --default-sizes <type>      Module sizes to show in treemap by default.
+                                  Possible values: stat, parsed, gzip, brotli (default: parsed)
+  --compression-algorithm <type>  Compression algorithm that will be used to calculate the compressed module sizes.
+                                  Possible values: gzip, brotli (default: gzip)
+  -O, --no-open                   Don't open report in default browser automatically.
+  -e, --exclude <regexp>          Assets that should be excluded from the report.
+                                  Can be specified multiple times.
+  -l, --log-level <level>         Log level.
+                                  Possible values: debug, info, warn, error, silent (default: info)
+  -h, --help                      output usage information
 ```
 
 <h2 align="center" id="size-definitions">Size definitions</h2>
@@ -150,6 +153,10 @@ as Uglify, then this value will reflect the minified size of your code.
 ### `gzip`
 
 This is the size of running the parsed bundles/modules through gzip compression.
+
+### `brotli`
+
+This is the size of running the parsed bundles/modules through Brotli compression.
 
 <h2 align="center">Selecting Which Chunks to Display</h2>
 

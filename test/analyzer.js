@@ -216,6 +216,23 @@ describe('Analyzer', function () {
         expect(generatedReportTitle).to.match(/^webpack-bundle-analyzer \[.* at \d{2}:\d{2}\]/u);
       });
     });
+
+    describe('compression algorithm', function () {
+      it('should accept --compression-algorithm brotli', async function () {
+        generateReportFrom('with-modules-chunk.json', '--compression-algorithm brotli');
+        expect(await getCompressionAlgorithm()).to.equal('brotli');
+      });
+
+      it('should accept --compression-algorithm gzip', async function () {
+        generateReportFrom('with-modules-chunk.json', '--compression-algorithm gzip');
+        expect(await getCompressionAlgorithm()).to.equal('gzip');
+      });
+
+      it('should default to gzip', async function () {
+        generateReportFrom('with-modules-chunk.json');
+        expect(await getCompressionAlgorithm()).to.equal('gzip');
+      });
+    });
   });
 });
 
@@ -239,6 +256,11 @@ async function getTitleFromReport() {
 
 async function getChartData() {
   return await nightmare.goto(`file://${__dirname}/output/report.html`).evaluate(() => window.chartData);
+}
+
+async function getCompressionAlgorithm() {
+  return await nightmare.goto(`file://${__dirname}/output/report.html`).evaluate(
+    () => window.compressionAlgorithm);
 }
 
 function forEachChartItem(chartData, cb) {

@@ -7,8 +7,8 @@ import {getModulePathParts} from './utils';
 
 export default class ConcatenatedModule extends Module {
 
-  constructor(name, data, parent) {
-    super(name, data, parent);
+  constructor(name, data, parent, opts) {
+    super(name, data, parent, opts);
     this.name += ' (concatenated)';
     this.children = Object.create(null);
     this.fillContentModules();
