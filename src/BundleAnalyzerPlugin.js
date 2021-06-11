@@ -7,6 +7,20 @@ const viewer = require('./viewer');
 const utils = require('./utils');
 const {writeStats} = require('./statsUtils');
 
+const REPORT_TYPES = {
+  json: 'json',
+  html: 'html'
+};
+
+function beforeAfter(configBefore, configAfter) {
+  return [
+    'Change the following config parameters from:',
+    JSON.stringify(configBefore, null, 2),
+    'To these new config parameters:',
+    JSON.stringify(configAfter, null, 2)
+  ].join('\n');
+}
+
 class BundleAnalyzerPlugin {
   constructor(opts = {}) {
     this.opts = {
@@ -23,6 +37,7 @@ class BundleAnalyzerPlugin {
       logLevel: 'info',
       // deprecated
       startAnalyzer: true,
+      reports: [],
       ...opts,
       analyzerPort: 'analyzerPort' in opts ? (opts.analyzerPort === 'auto' ? 0 : opts.analyzerPort) : 8888
     };
@@ -48,12 +63,52 @@ class BundleAnalyzerPlugin {
         this.opts.analyzerMode = 'disabled';
       }
 
+      // Handling deprecated `json` mode
+      if (this.opts.analyzerMode === 'json') {
+        const configBefore = {analyzerMode: 'json'};
+        const report = {type: REPORT_TYPES.json};
+        if (this.opts.reportFilename) {
+          report.filename = this.opts.reportFilename;
+          configBefore.reportFilename = this.opts.reportFilename;
+        }
+        this.opts.reports.push(report);
+        this.opts.analyzerMode = 'static';
+
+        this.logger.warn(`analyzerMode ${bold('json')} is deprecated, please migrate your config to:`);
+        this.logger.warn(beforeAfter(configBefore, {analyzerMode: 'static', reports: [report]}));
+      }
+
+      // Handling static mode defaulting to HTML
+      if (this.opts.analyzerMode === 'static' && this.opts.reports.length === 0) {
+        const configBefore = {};
+        const report = {type: REPORT_TYPES.html};
+        if (this.opts.reportFilename) {
+          report.filename = this.opts.reportFilename;
+          configBefore.reportFilename = this.opts.reportFilename;
+        }
+
+        this.opts.reports.push(report);
+        // eslint-disable-next-line max-len
+        this.logger.warn(`analyzerMode ${bold('static')} without ${bold('reports')} is deprecated, please migrate your config to:`);
+        this.logger.warn(beforeAfter(configBefore, {reports: [report]}));
+      }
+
       if (this.opts.analyzerMode === 'server') {
         actions.push(() => this.startAnalyzerServer(stats.toJson()));
       } else if (this.opts.analyzerMode === 'static') {
-        actions.push(() => this.generateStaticReport(stats.toJson()));
-      } else if (this.opts.analyzerMode === 'json') {
-        actions.push(() => this.generateJSONReport(stats.toJson()));
+        const statsJson = stats.toJson();
+        this.opts.reports.forEach(report => {
+          switch (report.type) {
+            case REPORT_TYPES.json:
+              actions.push(() => this.generateJSONReport(statsJson, report));
+              return;
+            case REPORT_TYPES.html:
+              actions.push(() => this.generateStaticReport(statsJson, report));
+              return;
+            default:
+              this.logger.error(`Unknown report type ${bold(report.type)}`);
+          }
+        });
       }
 
       if (actions.length) {
@@ -112,19 +167,19 @@ class BundleAnalyzerPlugin {
     }
   }
 
-  async generateJSONReport(stats) {
+  async generateJSONReport(stats, report) {
     await viewer.generateJSONReport(stats, {
-      reportFilename: path.resolve(this.compiler.outputPath, this.opts.reportFilename || 'report.json'),
+      reportFilename: path.resolve(this.compiler.outputPath, report.filename || 'report.json'),
       bundleDir: this.getBundleDirFromCompiler(),
       logger: this.logger,
       excludeAssets: this.opts.excludeAssets
     });
   }
 
-  async generateStaticReport(stats) {
+  async generateStaticReport(stats, report) {
     await viewer.generateReport(stats, {
       openBrowser: this.opts.openAnalyzer,
-      reportFilename: path.resolve(this.compiler.outputPath, this.opts.reportFilename || 'report.html'),
+      reportFilename: path.resolve(this.compiler.outputPath, report.filename || 'report.html'),
       reportTitle: this.opts.reportTitle,
       bundleDir: this.getBundleDirFromCompiler(),
       logger: this.logger,
