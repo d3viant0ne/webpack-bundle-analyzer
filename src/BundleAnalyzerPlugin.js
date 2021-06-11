@@ -28,11 +28,16 @@ class BundleAnalyzerPlugin {
     };
 
     this.server = null;
-    this.logger = new Logger(this.opts.logLevel);
   }
 
   apply(compiler) {
     this.compiler = compiler;
+
+    // Respect default logging level from webpack
+    const defaultLoggerLevel = compiler.options.infrastructureLogging && compiler.options.infrastructureLogging.level ?
+      compiler.options.infrastructureLogging.level : this.opts.logLevel;
+    this.logger = compiler.getInfrastructureLogger ?
+      compiler.getInfrastructureLogger('webpack-bundle-analyzer') : new Logger(defaultLoggerLevel);
 
     const done = (stats, callback) => {
       callback = callback || (() => {});
