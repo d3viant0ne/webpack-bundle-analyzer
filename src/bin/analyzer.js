@@ -110,44 +110,46 @@ bundleStatsFile = resolve(bundleStatsFile);
 
 if (!bundleDir) bundleDir = dirname(bundleStatsFile);
 
-let bundleStats;
+let bundleStatsPromise;
 try {
-  bundleStats = analyzer.readStatsFromFile(bundleStatsFile);
+  bundleStatsPromise = analyzer.readStatsFromFile(bundleStatsFile);
 } catch (err) {
   logger.error(`Couldn't read webpack bundle stats from "${bundleStatsFile}":\n${err}`);
   logger.debug(err.stack);
   process.exit(1);
 }
 
-if (mode === 'server') {
-  viewer.startServer(bundleStats, {
-    openBrowser,
-    port,
-    host,
-    defaultSizes,
-    reportTitle,
-    bundleDir,
-    excludeAssets,
-    logger: new Logger(logLevel)
-  });
-} else if (mode === 'static') {
-  viewer.generateReport(bundleStats, {
-    openBrowser,
-    reportFilename: resolve(reportFilename || 'report.html'),
-    reportTitle,
-    defaultSizes,
-    bundleDir,
-    excludeAssets,
-    logger: new Logger(logLevel)
-  });
-} else if (mode === 'json') {
-  viewer.generateJSONReport(bundleStats, {
-    reportFilename: resolve(reportFilename || 'report.json'),
-    bundleDir,
-    excludeAssets,
-    logger: new Logger(logLevel)
-  });
-}
+bundleStatsPromise.then(bundleStats => {
+  if (mode === 'server') {
+    viewer.startServer(bundleStats, {
+      openBrowser,
+      port,
+      host,
+      defaultSizes,
+      reportTitle,
+      bundleDir,
+      excludeAssets,
+      logger: new Logger(logLevel)
+    });
+  } else if (mode === 'static') {
+    viewer.generateReport(bundleStats, {
+      openBrowser,
+      reportFilename: resolve(reportFilename || 'report.html'),
+      reportTitle,
+      defaultSizes,
+      bundleDir,
+      excludeAssets,
+      logger: new Logger(logLevel)
+    });
+  } else if (mode === 'json') {
+    viewer.generateJSONReport(bundleStats, {
+      reportFilename: resolve(reportFilename || 'report.json'),
+      bundleDir,
+      excludeAssets,
+      logger: new Logger(logLevel)
+    });
+  }
+});
 
 function showHelp(error) {
   if (error) console.log(`\n  ${magenta(error)}\n`);
