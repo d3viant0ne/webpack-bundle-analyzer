@@ -53,3 +53,12 @@
 .foundModulesList {
   margin-left: 7px;
 }
+
+.searchMode {
+  border: 1px solid #aaa;
+  border-radius: 4px;
+  display: block;
+  flex: 1;
+  padding: 5px;
+}
+

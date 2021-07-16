@@ -17,6 +17,7 @@ import s from './ModulesTreemap.css';
 import Search from './Search';
 import {store} from '../store';
 import ModulesList from './ModulesList';
+import SEARCH_MODE from '../searchMode';
 
 const SIZE_SWITCH_ITEMS = [
   {label: 'Stat', prop: 'statSize'},
@@ -79,7 +80,18 @@ export default class ModulesTreemap extends Component {
             }
           </div>
           <div className={s.sidebarGroup}>
-            <Search label="Search modules"
+            <select onChange={this.handleSearchModeChange} className={s.searchMode}>
+              <option value={SEARCH_MODE.MODULES}>
+                Modules
+              </option>
+              <option value={SEARCH_MODE.CHUNKS}>
+                Chunks
+              </option>
+            </select>
+          </div>
+          <div className={s.sidebarGroup}>
+            <Search label="Search"
+              mode={store.searchMode}
               query={store.searchQuery}
               autofocus
               onQueryChange={this.handleQueryChange}/>
@@ -252,6 +264,10 @@ export default class ModulesTreemap extends Component {
 
   handleQueryChange = query => {
     store.searchQuery = query;
+  }
+
+  handleSearchModeChange = e => {
+    store.searchMode = e.target.value;
   }
 
   handleSelectedChunksChange = selectedChunks => {

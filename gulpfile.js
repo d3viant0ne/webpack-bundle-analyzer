@@ -2,8 +2,9 @@
 
 const gulp = require('gulp');
 
-const NODE_SRC = './src/**/*.js';
+const NODE_SRC = ['./src/**/*.js'];
 const NODE_DEST = './lib';
+const VIEWER_SRC = ['./client/**/*'];
 
 const cli = require('commander')
   .usage('<task> [options]')
@@ -32,7 +33,7 @@ class TaskError extends Error {
 
 function watch() {
   gulp
-    .watch(NODE_SRC, gulp.series(cleanNodeScripts, compileNodeScripts))
+    .watch(NODE_SRC.concat(VIEWER_SRC), gulp.series(cleanNodeScripts, compileNodeScripts, compileViewerScripts))
     // TODO: replace with `emitErrors: false` option after https://github.com/gulpjs/glob-watcher/pull/34 will be merged
     .on('error', () => {});
 }

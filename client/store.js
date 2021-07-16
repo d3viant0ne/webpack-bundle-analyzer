@@ -1,6 +1,7 @@
 import {observable, computed} from 'mobx';
 import {isChunkParsed, walkModules} from './utils';
 import localStorage from './localStorage';
+import SEARCH_MODE from './searchMode';
 
 export class Store {
   cid = 0;
@@ -9,6 +10,7 @@ export class Store {
   @observable.ref allChunks;
   @observable.shallow selectedChunks;
   @observable searchQuery = '';
+  @observable searchMode = SEARCH_MODE.MODULES;
   @observable defaultSize;
   @observable selectedSize;
   @observable showConcatenatedModulesContent = (localStorage.getItem('showConcatenatedModulesContent') === true);
@@ -83,46 +85,58 @@ export class Store {
       .map(chunk => {
         let foundGroups = [];
 
-        walkModules(chunk.groups, module => {
-          let weight = 0;
+        if (this.searchMode === SEARCH_MODE.MODULES) {
+          walkModules(chunk.groups, module => {
+            let weight = 0;
 
-          /**
-           * Splitting found modules/directories into groups:
-           *
-           * 1) Module with matched label (weight = 4)
-           * 2) Directory with matched label (weight = 3)
-           * 3) Module with matched path (weight = 2)
-           * 4) Directory with matched path (weight = 1)
-           */
-          if (query.test(module.label)) {
-            weight += 3;
-          } else if (module.path && query.test(module.path)) {
-            weight++;
+            /**
+             * Splitting found modules/directories into groups:
+             *
+             * 1) Module with matched label (weight = 4)
+             * 2) Directory with matched label (weight = 3)
+             * 3) Module with matched path (weight = 2)
+             * 4) Directory with matched path (weight = 1)
+             */
+            if (query.test(module.label)) {
+              weight += 3;
+            } else if (module.path && query.test(module.path)) {
+              weight++;
+            }
+
+            if (!weight) return;
+
+            if (!module.groups) {
+              weight += 1;
+            }
+
+            const foundModules = foundGroups[weight - 1] = foundGroups[weight - 1] || [];
+            foundModules.push(module);
+          });
+
+          const {activeSize} = this;
+
+          // Filtering out missing groups
+          foundGroups = foundGroups.filter(Boolean).reverse();
+          // Sorting each group by active size
+          foundGroups.forEach(modules =>
+            modules.sort((m1, m2) => m2[activeSize] - m1[activeSize])
+          );
+
+          return {
+            chunk,
+            modules: [].concat(...foundGroups)
+          };
+        } else {
+          let modules = [];
+          if (query.test(chunk.label)) {
+            modules = chunk.groups;
           }
 
-          if (!weight) return;
-
-          if (!module.groups) {
-            weight += 1;
-          }
-
-          const foundModules = foundGroups[weight - 1] = foundGroups[weight - 1] || [];
-          foundModules.push(module);
-        });
-
-        const {activeSize} = this;
-
-        // Filtering out missing groups
-        foundGroups = foundGroups.filter(Boolean).reverse();
-        // Sorting each group by active size
-        foundGroups.forEach(modules =>
-          modules.sort((m1, m2) => m2[activeSize] - m1[activeSize])
-        );
-
-        return {
-          chunk,
-          modules: [].concat(...foundGroups)
-        };
+          return {
+            chunk,
+            modules
+          };
+        }
       })
       .filter(result => result.modules.length > 0)
       .sort((c1, c2) => c1.modules.length - c2.modules.length);

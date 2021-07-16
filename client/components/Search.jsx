@@ -17,12 +17,12 @@ export default class Search extends PureComponent {
   }
 
   render() {
-    const {label, query} = this.props;
+    const {label, query, mode} = this.props;
 
     return (
       <div className={s.container}>
         <div className={s.label}>
-          {label}:
+          {label + ' ' + mode}:
         </div>
         <div className={s.row}>
           <input ref={this.saveInputNode}
